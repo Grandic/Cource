@@ -1,8 +1,6 @@
-import csv
 import json
 import requests
-import time
-import os
+from heapq import nlargest
 from abc import ABC, abstractmethod
 
 
@@ -83,50 +81,66 @@ class SuperJobAPI(API):
         with open("test", "w", encoding='utf-8') as file:
             json.dump(result, file)
 
-a = input("Добрый вечер, где хотите провести поиск вакансии? 1: HH.RU 2: SJ")
-while True:
-    if a == 1:
-        b = input("Вы выбрали работу с HH\nВведите название интересующей вас вакансии")
-        hh_api = HeadHunterAPI()
-        hh_vacancies = hh_api.get_json(b)
+
+class Vacancies:
+    all = []
+
+    def __init__(self, name, link, salary_from, salary_to, description):
+        self.name = name
+        self.link = link
+        self.salary_from = salary_from
+        self.salary_to = salary_to
+        self.description = description
+        self.all.append(self)
+        self.max = 0
+    def __str__(self):
+        return self.name
+
+
+    def __repr__(self):
+        return f"{self.name} {self.salary_from}"
+
+    def __add__(self, other):
+        if isinstance(other, self.__class__):
+            return self.salary_from + other.salary_from
+        return None
+
+    def __iter__(self):
+        self.max = self.salary_from
+        return self
+
+    def __next__(self):
+        if self.max < self.salary_from:
+            self.max = self.salary_from
+            return self.max
+        else:
+            raise StopIteration
+
+
+    @classmethod
+    def instantiate_from_json(cls):
+        Vacancies.all.clear()
         with open("/home/dmitry/PycharmProjects/Cource_07.2023/test") as file:
             templates = json.load(file)
-            count = 0
-
             for i in templates:
-                if i[3] != None:
-                    if int(i[3]) > count:
-                        count = i[3]
-                        name = i[0]
-                        desc = i[4]
-            print(f'В данный момент максимальная зарплата вакансии {name} равна {count} {desc}')
-    elif a == 2:
-        b = input("Вы выбрали работу с SJ\nВведите название интересующей вас ваканси")
-        superjob_api = SuperJobAPI()
-        superjob_vacancies = superjob_api.get_json(b)
-        with open("/home/dmitry/PycharmProjects/Cource_07.2023/test") as file:
-            templates = json.load(file)
-            count = 0
-            for i in templates:
-                if i[3] != None:
-                    if int(i[3]) > count:
-                        count = i[3]
-                        name = i[0]
-                        desc = i[4]
+                name = i[0]
+                link = i[1]
+                salary_from = i[2]
+                salary_to = i[3]
+                description = i[4]
+                vacancy = cls(name, link, salary_from, salary_to, description)
+        return vacancy
 
-            print(f'В данный момент максимальная зарплата вакансии {name} равна {count} {desc}')
-    else:
-            print('Необходимо ввести число от 1 до 2')
-            a = int(input())
-            continue
+a = Vacancies.instantiate_from_json()
+c = []
+max = int(input("Введите интересующую вас зп"))
+for i in range(len(Vacancies.all)):
 
+    if Vacancies.all[i].salary_from != None:
+        if max < Vacancies.all[i].salary_from:
+            print(f'{Vacancies.all[i].salary_from} {Vacancies.all[i].name}')
+            c.append(Vacancies.all[i].salary_from)
 
-#
-# with open("/home/dmitry/PycharmProjects/Cource_07.2023/test") as file:
-#     templates = json.load(file)
-#     count = 0
-#     for i in templates:
-#         if i[3] > count:
-#             count = i[3]
-#             name = i[0]
-#     print(f'В данный момент максимальная зарплата вакансии {name} равна {count}')
+d = nlargest(5, c)
+print(d)
+
