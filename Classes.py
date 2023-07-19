@@ -1,8 +1,10 @@
 import json
+from _ast import operator
+
 import requests
 from heapq import nlargest
 from abc import ABC, abstractmethod
-
+from operator import itemgetter
 
 class API(ABC):
     @abstractmethod
@@ -92,7 +94,7 @@ class Vacancies:
         self.salary_to = salary_to
         self.description = description
         self.all.append(self)
-        self.max = 0
+
     def __str__(self):
         return self.name
 
@@ -105,16 +107,6 @@ class Vacancies:
             return self.salary_from + other.salary_from
         return None
 
-    def __iter__(self):
-        self.max = self.salary_from
-        return self
-
-    def __next__(self):
-        if self.max < self.salary_from:
-            self.max = self.salary_from
-            return self.max
-        else:
-            raise StopIteration
 
 
     @classmethod
@@ -131,16 +123,44 @@ class Vacancies:
                 vacancy = cls(name, link, salary_from, salary_to, description)
         return vacancy
 
+    def top_5_salary_from(self):
+        a = {}
+        for i in range(self.all.__len__()):
+            if self.all[i].salary_from != None:
+                a[self.all[i].name] = f' {self.all[i].salary_from}'
+        b = sorted(a, key=a.get, reverse=True)[:5]
+
+        return f' Топ 5 вакансий с зарплатой от {b}'
+
+    def top_5_salary_to(self):
+        a = {}
+        for i in range(self.all.__len__()):
+            if self.all[i].salary_to != None:
+                a[self.all[i].name] = f' {self.all[i].salary_to}'
+        b = sorted(a, key=a.get, reverse=True)[:5]
+        return f' Топ 5 вакансий с зарплатой до {b}'
+
+    def key_word_sort(self, key_word):
+        a = {}
+        k = key_word.split(",")
+        for i in range(self.all.__len__()):
+            for j in k:
+                if self.all[i].description != None and j in self.all[i].description:
+                    a[self.all[i].name] = f'с зарплатой от {self.all[i].salary_from} до {self.all[i].salary_to}'
+        if len(a) > 0:
+            return f'Вакансии с указанными Вaми ключевыми словами: {a}'
+        else:
+            return 'По данным ключевым словам вакансий не найдено'
+
+
+    def to_json(self, user_dict_name):
+        pass
+
+
 a = Vacancies.instantiate_from_json()
-c = []
-max = int(input("Введите интересующую вас зп"))
-for i in range(len(Vacancies.all)):
-
-    if Vacancies.all[i].salary_from != None:
-        if max < Vacancies.all[i].salary_from:
-            print(f'{Vacancies.all[i].salary_from} {Vacancies.all[i].name}')
-            c.append(Vacancies.all[i].salary_from)
-
-d = nlargest(5, c)
-print(d)
-
+# d = a.top_5_salary_to()
+# c = a.top_5_salary_from()
+# print(d)
+# print(c)
+e = a.key_word_sort("продавец ппппп папа пап")
+print(e)
