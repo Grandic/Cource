@@ -1,22 +1,26 @@
 import json
-from _ast import operator
-
 import requests
-from heapq import nlargest
 from abc import ABC, abstractmethod
-from operator import itemgetter
+from operator import attrgetter
+
 
 class API(ABC):
+    """Абстрактный класс с абстракт методом, который обязывает нас создать методы для работы с API для обоих
+    наследников"""
+
     @abstractmethod
     def get_request(self, keyword):
         pass
 
 
 class HeadHunterAPI(API):
+    """Класс для работы с API HH.ru"""
+
     def __init__(self):
         self.url = "https://api.hh.ru/vacancies"
 
     def get_request(self, keyword, page=0):
+        """Метод запроса вакансий"""
         self.params = {'text': keyword,
                        'area': 1,
                        'page': page,
@@ -30,6 +34,7 @@ class HeadHunterAPI(API):
         return data
 
     def get_json(self, name):
+        """Полученные данные с вакансиями итерируем и сохраняем в JSON файл для дальнейшей работы"""
         result = []
         for page in range(0, 5):
             # Преобразуем текст ответа запроса в справочник Python
@@ -48,6 +53,8 @@ class HeadHunterAPI(API):
 
 
 class SuperJobAPI(API):
+    """Класс для работы с API SJ.ru"""
+
     def __init__(self):
         self.url = "https://api.superjob.ru/2.0/vacancies/"
         self.headers = {
@@ -55,6 +62,7 @@ class SuperJobAPI(API):
         }
 
     def get_request(self, keyword, page=0):
+        """Метод запроса вакансий"""
         self.params = {
             "count": 100,
             "page": page,
@@ -69,6 +77,7 @@ class SuperJobAPI(API):
         return data
 
     def get_json(self, name):
+        """Полученные данные с вакансиями итерируем и сохраняем в JSON файл для дальнейшей работы"""
         result = []
         for page in range(0, 5):
             # Преобразуем текст ответа запроса в справочник Python
@@ -84,9 +93,37 @@ class SuperJobAPI(API):
             json.dump(result, file)
 
 
-class Vacancies:
-    all = []
+class JSON(ABC):
+    """Абстрактный класс с абстракт методами, который обязывает нас создать методы для работы с JSON и экземплярами вакансий"""
 
+    @abstractmethod
+    def top_5_salary_from(self):
+        pass
+
+    @abstractmethod
+    def top_5_salary_to(self):
+        pass
+
+    @abstractmethod
+    def key_word_sort(self, key_word):
+        pass
+
+    @abstractmethod
+    def salary_sort(self, salary):
+        pass
+
+    @abstractmethod
+    def to_json(self):
+        pass
+
+    @abstractmethod
+    def instantiate_from_json(self):
+        pass
+
+
+class Vacancies(ABC):
+    """Класс для работы с файлом созданным одним из методов HH или SJ"""
+    all = []
     def __init__(self, name, link, salary_from, salary_to, description):
         self.name = name
         self.link = link
@@ -94,20 +131,21 @@ class Vacancies:
         self.salary_to = salary_to
         self.description = description
         self.all.append(self)
+        self.sort = [] # Атрибут, который будем использовать как строку для работы сортировки
 
     def __str__(self):
         return self.name
 
-
     def __repr__(self):
-        return f"{self.name} {self.salary_from}"
+        return f"{self.name} c зарплатой от {self.salary_from} до {self.salary_to}"
 
     def __add__(self, other):
+        """Метод сравнения экземпляров класса по ЗП"""
         if isinstance(other, self.__class__):
             return self.salary_from + other.salary_from
         return None
 
-
+    """Инициализируем экземпляры класса из списка вакансий полученных через API и сохранненых на PC"""
 
     @classmethod
     def instantiate_from_json(cls):
@@ -124,43 +162,73 @@ class Vacancies:
         return vacancy
 
     def top_5_salary_from(self):
-        a = {}
+        """Метод вывода 5 топ зарплат от"""
+        self.sort.clear()
         for i in range(self.all.__len__()):
-            if self.all[i].salary_from != None:
-                a[self.all[i].name] = f' {self.all[i].salary_from}'
-        b = sorted(a, key=a.get, reverse=True)[:5]
-
-        return f' Топ 5 вакансий с зарплатой от {b}'
+            if self.all[i].salary_from is not None:
+                self.sort.append(self.all[i])
+        sort_by_salary_from = sorted(self.sort, key=lambda x: (x.salary_from), reverse=True)[:5]
+        return sort_by_salary_from
 
     def top_5_salary_to(self):
-        a = {}
+        """Метод вывода 5 топ зарплат до"""
+        self.sort.clear()
         for i in range(self.all.__len__()):
-            if self.all[i].salary_to != None:
-                a[self.all[i].name] = f' {self.all[i].salary_to}'
-        b = sorted(a, key=a.get, reverse=True)[:5]
-        return f' Топ 5 вакансий с зарплатой до {b}'
+            if self.all[i].salary_to is not None:
+                self.sort.append(self.all[i])
+        sort_by_salary_to = sorted(self.sort, key=lambda x: (x.salary_to), reverse=True)[:5]
+        return sort_by_salary_to
 
     def key_word_sort(self, key_word):
-        a = {}
+        """Метод сортировки по ключевым словам"""
+        self.sort.clear()
         k = key_word.split(",")
         for i in range(self.all.__len__()):
             for j in k:
-                if self.all[i].description != None and j in self.all[i].description:
-                    a[self.all[i].name] = f'с зарплатой от {self.all[i].salary_from} до {self.all[i].salary_to}'
-        if len(a) > 0:
-            return f'Вакансии с указанными Вaми ключевыми словами: {a}'
+                if self.all[i].description is not None and j in self.all[i].description:
+                    self.sort.append(self.all[i])
+        if len(self.sort) > 0:
+            return self.sort
         else:
             return 'По данным ключевым словам вакансий не найдено'
 
+    def salary_sort(self, salary):
+        """Метод сортировки и показа вакансии по зп заданной пользователем"""
+        self.sort.clear()
+        k = salary.split("-")
+        salary_from = int(k[0])
+        salary_to = int(k[1])
+        salary_middle = (salary_from+salary_to)/2 #Вычисляем среднее значение по вводу пользователя
+        for i in range(self.all.__len__()):
+            if self.all[i].salary_from is not None and int(salary_middle) <= int(self.all[i].salary_from):
+                self.sort.append(self.all[i])
+        if len(self.sort) > 0:
+            return self.sort
+        else:
+            return 'Нет вакансий с указанной вами зарплатой'
 
-    def to_json(self, user_dict_name):
-        pass
+def to_json(Dictionary,f_name):
+    """Функция записи любых данных работы класса Vacansies в JSON"""
+    a = {}
+    try:
+        for i in Dictionary:
+            a[i.name] = f'С зарплатой от {i.salary_from} до {i.salary_to}'
+            to_js = json.dumps(a)
+            with open(f_name, "w") as f:
+                f.write(to_js)
+    except AttributeError:
+        print("Ошибка записи файла")
+
 
 
 a = Vacancies.instantiate_from_json()
-# d = a.top_5_salary_to()
+d = a.top_5_salary_to()
+
 # c = a.top_5_salary_from()
 # print(d)
 # print(c)
-e = a.key_word_sort("продавец ппппп папа пап")
+e = a.key_word_sort("работа")
 print(e)
+to_json(e, "1")
+#d = a.top_5_salary_from()
+
