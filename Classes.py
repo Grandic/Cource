@@ -210,10 +210,3 @@ class Vacancies(ABC):
 
 
 
-
-#user_interaction()
-# hh_api = HeadHunterAPI()
-# hh_api.get_json("Уборшица")
-# vacancies = Vacancies.instantiate_from_json()
-# b = vacancies.top_5_salary_from()
-# print(b)
