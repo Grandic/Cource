@@ -206,7 +206,3 @@ class Vacancies(ABC):
             return self.sort
         else:
             return 'Нет вакансий с указанной вами зарплатой'
-
-
-
-
