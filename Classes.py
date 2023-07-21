@@ -137,7 +137,7 @@ class Vacancies(ABC):
         return self.name
 
     def __repr__(self):
-        return f"{self.name} c зарплатой от {self.salary_from} до {self.salary_to}"
+        return f"{self.name} c зарплатой от {self.salary_from} до {self.salary_to} ссылка на вакансию: {self.link}"
 
     def __add__(self, other):
         """Метод сравнения экземпляров класса по ЗП"""
@@ -176,7 +176,7 @@ class Vacancies(ABC):
         for i in range(self.all.__len__()):
             if self.all[i].salary_to is not None:
                 self.sort.append(self.all[i])
-        sort_by_salary_to = sorted(self.sort, key=lambda x: (x.salary_to), reverse=True)[:5]
+        sort_by_salary_to = sorted(self.sort, key=lambda x: x.salary_to, reverse=True)[:5]
         return sort_by_salary_to
 
     def key_word_sort(self, key_word):
@@ -207,28 +207,13 @@ class Vacancies(ABC):
         else:
             return 'Нет вакансий с указанной вами зарплатой'
 
-def to_json(Dictionary,f_name):
-    """Функция записи любых данных работы класса Vacansies в JSON"""
-    a = {}
-    try:
-        for i in Dictionary:
-            a[i.name] = f'С зарплатой от {i.salary_from} до {i.salary_to}'
-            to_js = json.dumps(a)
-            with open(f_name, "w") as f:
-                f.write(to_js)
-    except AttributeError:
-        print("Ошибка записи файла")
 
 
 
-a = Vacancies.instantiate_from_json()
-d = a.top_5_salary_to()
 
-# c = a.top_5_salary_from()
-# print(d)
-# print(c)
-e = a.key_word_sort("работа")
-print(e)
-to_json(e, "1")
-#d = a.top_5_salary_from()
-
+#user_interaction()
+# hh_api = HeadHunterAPI()
+# hh_api.get_json("Уборшица")
+# vacancies = Vacancies.instantiate_from_json()
+# b = vacancies.top_5_salary_from()
+# print(b)
