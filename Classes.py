@@ -1,7 +1,15 @@
 import json
 import requests
 from abc import ABC, abstractmethod
-from operator import attrgetter
+import os
+import pathlib
+from pathlib import Path
+
+XApiAppId = os.getenv("X-Api-App-Id") #Использумем переменные окружения для формирования секретного ключа.
+"""Формируем пусть к файлу"""
+dir_path = pathlib.Path.home()
+path = Path(dir_path, "PycharmProjects", "Cource_07.2023", "test")
+
 
 
 class API(ABC):
@@ -48,18 +56,17 @@ class HeadHunterAPI(API):
                 j_payment_from = salary.get('from')
                 j_payment_to = salary.get('to')
                 result.append([i_name, i_link, j_payment_from, j_payment_to, i_work])
-        with open("test", "w", encoding='utf-8') as file:
+        with open(path, "w", encoding='utf-8') as file:
             json.dump(result, file)
 
 
 class SuperJobAPI(API):
     """Класс для работы с API SJ.ru"""
 
+
     def __init__(self):
         self.url = "https://api.superjob.ru/2.0/vacancies/"
-        self.headers = {
-            "X-Api-App-Id": "v3.r.15956954.ef9ece301a81e1f04aa0ac0c905b9c497c445f45.035013f5924d01334a17d9c54856e6423a2b98a7"
-        }
+
 
     def get_request(self, keyword, page=0):
         """Метод запроса вакансий"""
@@ -71,6 +78,10 @@ class SuperJobAPI(API):
             "no_agreement": 1,
             "town": 4
         }
+        self.headers =  {
+            "X-Api-App-Id": XApiAppId
+        }
+
         req = requests.get(self.url, headers=self.headers, params=self.params)  # Посылаем запрос к API
         data = req.content.decode()  # Декодируем его ответ, чтобы Кириллица отображалась корректно
         req.close()
@@ -89,7 +100,7 @@ class SuperJobAPI(API):
                 i_payment_to = i.get('payment_to')
                 i_work = i.get('candidat')
                 result.append([i_name, i_link, i_payment_from, i_payment_to, i_work])
-        with open("test", "w", encoding='utf-8') as file:
+        with open(path, "w", encoding='utf-8') as file:
             json.dump(result, file)
 
 
