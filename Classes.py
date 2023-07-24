@@ -6,11 +6,9 @@ import pathlib
 from pathlib import Path
 
 XApiAppId = os.getenv("X-Api-App-Id") #Использумем переменные окружения для формирования секретного ключа.
-"""Формируем пусть к файлу"""
-dir_path = pathlib.Path.home()
-path = Path(dir_path, "PycharmProjects", "Cource_07.2023", "test")
+"""Формируем путь к файлу"""
 
-
+path = Path.cwd() / 'Test'
 
 class API(ABC):
     """Абстрактный класс с абстракт методом, который обязывает нас создать методы для работы с API для обоих
@@ -66,7 +64,6 @@ class SuperJobAPI(API):
 
     def __init__(self):
         self.url = "https://api.superjob.ru/2.0/vacancies/"
-
 
     def get_request(self, keyword, page=0):
         """Метод запроса вакансий"""
