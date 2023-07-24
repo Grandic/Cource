@@ -2,7 +2,6 @@ import json
 import requests
 from abc import ABC, abstractmethod
 import os
-import pathlib
 from pathlib import Path
 
 XApiAppId = os.getenv("X-Api-App-Id") #Использумем переменные окружения для формирования секретного ключа.
