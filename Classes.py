@@ -2,12 +2,10 @@ import json
 import requests
 from abc import ABC, abstractmethod
 import os
-from pathlib import Path
 
 XApiAppId = os.getenv("X-Api-App-Id") #Использумем переменные окружения для формирования секретного ключа.
 """Формируем путь к файлу"""
 
-path = Path.cwd() / 'Test'
 
 class API(ABC):
     """Абстрактный класс с абстракт методом, который обязывает нас создать методы для работы с API для обоих
@@ -53,7 +51,7 @@ class HeadHunterAPI(API):
                 j_payment_from = salary.get('from')
                 j_payment_to = salary.get('to')
                 result.append([i_name, i_link, j_payment_from, j_payment_to, i_work])
-        with open(path, "w", encoding='utf-8') as file:
+        with open("test", "w", encoding='utf-8') as file:
             json.dump(result, file)
 
 
@@ -96,7 +94,7 @@ class SuperJobAPI(API):
                 i_payment_to = i.get('payment_to')
                 i_work = i.get('candidat')
                 result.append([i_name, i_link, i_payment_from, i_payment_to, i_work])
-        with open(path, "w", encoding='utf-8') as file:
+        with open("test", "w", encoding='utf-8') as file:
             json.dump(result, file)
 
 
@@ -157,7 +155,7 @@ class Vacancies(ABC):
     @classmethod
     def instantiate_from_json(cls):
         Vacancies.all.clear()
-        with open("/home/dmitry/PycharmProjects/Cource_07.2023/test") as file:
+        with open("test") as file:
             templates = json.load(file)
             for i in templates:
                 name = i[0]
